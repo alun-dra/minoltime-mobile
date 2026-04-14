@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'core/app_navigator.dart';
 import 'screens/startup_screen.dart';
 
 void main() {
@@ -10,9 +12,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StartupScreen(),
+      navigatorKey: AppNavigator.navigatorKey,
+      scaffoldMessengerKey: AppNavigator.scaffoldMessengerKey,
+      home: const StartupScreen(),
     );
   }
 }

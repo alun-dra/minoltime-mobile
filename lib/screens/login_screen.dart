@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/auth_exceptions.dart';
 import '../services/auth_service.dart';
 import '../services/session_service.dart';
 import 'device_panel_screen.dart';
@@ -33,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     final username = usernameController.text.trim();
     final password = passwordController.text.trim();
+
+    FocusScope.of(context).unfocus();
 
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,20 +79,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bienvenido ${response.username}'),
-        ),
-      );
-    } catch (e) {
+    } on AuthException catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
-          ),
+          content: Text(e.message),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ocurrió un error inesperado'),
         ),
       );
     } finally {
@@ -215,6 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: usernameController,
                       hintText: 'Usuario',
                       icon: Icons.person_outline_rounded,
+                      textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 16),
                     _buildInput(
@@ -222,6 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'Contraseña',
                       icon: Icons.lock_outline_rounded,
                       obscureText: obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _handleLogin(),
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
@@ -295,10 +301,14 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData icon,
     bool obscureText = false,
     Widget? suffixIcon,
+    TextInputAction textInputAction = TextInputAction.done,
+    ValueChanged<String>? onSubmitted,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
       style: const TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.w500,
