@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'card_scanner_screen.dart';
-import 'qr_scanner_screen.dart';
+
+import '../services/session_service.dart';
 import '../widgets/device/access_code_modal.dart';
 import '../widgets/device/device_action_button.dart';
 import '../widgets/device/device_header.dart';
 import '../widgets/device/device_info.dart';
 import '../widgets/device/device_logout_button.dart';
+import 'card_scanner_screen.dart';
+import 'login_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class DevicePanelScreen extends StatelessWidget {
   const DevicePanelScreen({super.key});
@@ -48,6 +51,21 @@ class DevicePanelScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _logout(BuildContext context) async {
+    const sessionService = SessionService();
+    await sessionService.clearSession();
+
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +89,10 @@ class DevicePanelScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 420),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 34,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -102,7 +123,7 @@ class DevicePanelScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     DeviceLogoutButton(
                       text: 'Cerrar sesión',
-                      onTap: () {},
+                      onTap: () => _logout(context),
                     ),
                   ],
                 ),

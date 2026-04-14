@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/user_panel_screen.dart';
+import 'screens/startup_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: UserPanelScreen(),
+      home: StartupScreen(),
     );
   }
 }
