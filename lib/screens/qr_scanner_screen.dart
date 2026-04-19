@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../widgets/scanner/qr_frame.dart';
 import '../widgets/scanner/qr_header.dart';
 import '../widgets/scanner/qr_overlay.dart';
-import '../widgets/scanner/qr_frame.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -13,7 +13,12 @@ class QrScannerScreen extends StatefulWidget {
 }
 
 class _QrScannerScreenState extends State<QrScannerScreen> {
-  final MobileScannerController controller = MobileScannerController();
+  final MobileScannerController controller = MobileScannerController(
+    formats: const [BarcodeFormat.qrCode],
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    returnImage: false,
+  );
+
   bool _handled = false;
 
   @override
@@ -25,17 +30,17 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   void _onDetect(BarcodeCapture capture) {
     if (_handled) return;
 
-    final barcode =
-        capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
+    if (capture.barcodes.isEmpty) return;
 
-    final value = barcode?.rawValue;
+    final Barcode barcode = capture.barcodes.first;
+    final String? value = barcode.rawValue;
 
-    if (value == null || value.isEmpty) return;
+    if (value == null || value.trim().isEmpty) return;
 
     _handled = true;
     controller.stop();
 
-    Navigator.pop(context, value);
+    Navigator.pop(context, value.trim());
   }
 
   @override
@@ -43,16 +48,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          /// Cámara
           MobileScanner(
             controller: controller,
+            fit: BoxFit.cover,
             onDetect: _onDetect,
           ),
-
-          /// Overlay oscuro
           const QrOverlay(),
-
-          /// UI
           SafeArea(
             child: Column(
               children: [

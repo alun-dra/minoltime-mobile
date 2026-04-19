@@ -16,7 +16,16 @@ enum LoginType {
 class AuthService {
   const AuthService();
 
+  static const String _prodBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://back-handsoft-production.up.railway.app',
+  );
+
   String get baseUrl {
+    if (kReleaseMode) {
+      return _prodBaseUrl;
+    }
+
     if (kIsWeb) {
       return 'http://localhost:8080';
     }
