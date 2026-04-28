@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-Future<void> showAccessCodeModal(BuildContext context) async {
+Future<String?> showAccessCodeModal(BuildContext context) async {
   final TextEditingController codeController = TextEditingController();
 
-  await showDialog(
+  final result = await showDialog<String>(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
@@ -48,13 +48,14 @@ Future<void> showAccessCodeModal(BuildContext context) async {
               const SizedBox(height: 22),
               TextField(
                 controller: codeController,
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Ej: 123456',
+                  hintText: 'Ej: 9468-5091',
                   hintStyle: TextStyle(
                     color: Colors.white.withOpacity(0.65),
                   ),
@@ -78,6 +79,20 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                     ),
                   ),
                 ),
+                onSubmitted: (_) {
+                  final code = codeController.text.trim();
+
+                  if (code.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Debes ingresar un código'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pop(dialogContext, code);
+                },
               ),
               const SizedBox(height: 22),
               Row(
@@ -123,13 +138,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                             return;
                           }
 
-                          Navigator.pop(dialogContext);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Código ingresado: $code'),
-                            ),
-                          );
+                          Navigator.pop(dialogContext, code);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4D00C9),
@@ -156,4 +165,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
       );
     },
   );
+
+  codeController.dispose();
+  return result;
 }

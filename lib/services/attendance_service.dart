@@ -24,4 +24,23 @@ class AttendanceService {
     final data = jsonDecode(response.body);
     return ValidateQrResponse.fromJson(data);
   }
+
+  Future<ValidateQrResponse> validateAccessCode({
+    required String accessCode,
+    required int accessPointId,
+  }) async {
+    const apiClient = ApiClient();
+
+    final response = await apiClient.post(
+      '/api/v1/attendance/validate-access-code',
+      requiresAuth: false,
+      body: {
+        'access_code': accessCode,
+        'access_point_id': accessPointId,
+      },
+    );
+
+    final data = jsonDecode(response.body);
+    return ValidateQrResponse.fromJson(data);
+  }
 }

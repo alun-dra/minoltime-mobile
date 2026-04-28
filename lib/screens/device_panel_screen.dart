@@ -25,7 +25,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
   final AttendanceService _attendanceService = const AttendanceService();
   final SessionService _sessionService = const SessionService();
 
-  bool isProcessingQr = false;
+  bool isProcessing = false;
   bool isLoadingDeviceData = true;
 
   int? deviceId;
@@ -77,8 +77,40 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     await _validateQrToken(token);
   }
 
+  Future<void> _openAccessCodeModal(BuildContext context) async {
+    final code = await showAccessCodeModal(context);
+
+    if (!context.mounted) return;
+    if (code == null || code.trim().isEmpty) return;
+
+    await _validateAccessCode(code.trim());
+  }
+
   Future<void> _validateQrToken(String token) async {
-    if (isProcessingQr) return;
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateQr(
+        token: token,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar el código QR',
+    );
+  }
+
+  Future<void> _validateAccessCode(String code) async {
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateAccessCode(
+        accessCode: code,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar el código de acceso',
+    );
+  }
+
+  Future<void> _processAttendanceValidation({
+    required Future<ValidateQrResponse> Function() request,
+    required String fallbackErrorMessage,
+  }) async {
+    if (isProcessing) return;
 
     if (accessPointId == null) {
       ApiErrorHandler.handle(
@@ -91,14 +123,11 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     }
 
     setState(() {
-      isProcessingQr = true;
+      isProcessing = true;
     });
 
     try {
-      final ValidateQrResponse response = await _attendanceService.validateQr(
-        token: token,
-        accessPointId: accessPointId!,
-      );
+      final ValidateQrResponse response = await request();
 
       if (!mounted) return;
 
@@ -121,13 +150,13 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
 
       ApiErrorHandler.handle(
         context,
-        const ValidationException('No se pudo validar el código QR'),
+        ValidationException(fallbackErrorMessage),
       );
     } finally {
       if (!mounted) return;
 
       setState(() {
-        isProcessingQr = false;
+        isProcessing = false;
       });
     }
   }
@@ -166,6 +195,10 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
       if (response.user!.username.isNotEmpty) {
         return response.user!.username;
       }
+    }
+
+    if (response.workDate != null && response.workDate!.isNotEmpty) {
+      return 'Fecha laboral: ${response.workDate}';
     }
 
     return 'Registro completado';
@@ -420,20 +453,22 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
                     _buildDeviceIdText(),
                     const SizedBox(height: 28),
                     DeviceActionButton(
-                      text: isProcessingQr ? 'Validando QR...' : 'Leer QR',
-                      onTap: isProcessingQr
+                      text: isProcessing ? 'Validando...' : 'Leer QR',
+                      onTap: isProcessing
                           ? () {}
                           : () => _openQrScanner(context),
                     ),
                     const SizedBox(height: 14),
                     DeviceActionButton(
-                      text: 'Código de acceso',
-                      onTap: () => showAccessCodeModal(context),
+                      text: isProcessing ? 'Validando...' : 'Código de acceso',
+                      onTap: isProcessing
+                          ? () {}
+                          : () => _openAccessCodeModal(context),
                     ),
                     const SizedBox(height: 14),
                     DeviceActionButton(
                       text: 'Tarjeta',
-                      onTap: () => _openCardScanner(context),
+                      onTap: isProcessing ? () {} : () => _openCardScanner(context),
                     ),
                     const SizedBox(height: 18),
                     DeviceLogoutButton(
