@@ -21,8 +21,7 @@ class AttendanceService {
       },
     );
 
-    final data = jsonDecode(response.body);
-    return ValidateQrResponse.fromJson(data);
+    return ValidateQrResponse.fromJson(jsonDecode(response.body));
   }
 
   Future<ValidateQrResponse> validateAccessCode({
@@ -40,7 +39,24 @@ class AttendanceService {
       },
     );
 
-    final data = jsonDecode(response.body);
-    return ValidateQrResponse.fromJson(data);
+    return ValidateQrResponse.fromJson(jsonDecode(response.body));
+  }
+
+  Future<ValidateQrResponse> validateBarcode({
+    required String barcode,
+    required int accessPointId,
+  }) async {
+    const apiClient = ApiClient();
+
+    final response = await apiClient.post(
+      '/api/v1/attendance/validate-barcode',
+      requiresAuth: false,
+      body: {
+        'barcode': barcode,
+        'access_point_id': accessPointId,
+      },
+    );
+
+    return ValidateQrResponse.fromJson(jsonDecode(response.body));
   }
 }

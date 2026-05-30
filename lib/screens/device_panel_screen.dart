@@ -86,6 +86,23 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     await _validateAccessCode(code.trim());
   }
 
+  Future<void> _openCardScanner(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CardScannerScreen(),
+      ),
+    );
+
+    if (!context.mounted) return;
+    if (result == null) return;
+
+    final barcode = result.toString().trim();
+    if (barcode.isEmpty) return;
+
+    await _validateBarcode(barcode);
+  }
+
   Future<void> _validateQrToken(String token) async {
     await _processAttendanceValidation(
       request: () => _attendanceService.validateQr(
@@ -103,6 +120,16 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
         accessPointId: accessPointId!,
       ),
       fallbackErrorMessage: 'No se pudo validar el código de acceso',
+    );
+  }
+
+  Future<void> _validateBarcode(String barcode) async {
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateBarcode(
+        barcode: barcode,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar la tarjeta',
     );
   }
 
@@ -321,24 +348,6 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     }
   }
 
-  Future<void> _openCardScanner(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const CardScannerScreen(),
-      ),
-    );
-
-    if (!context.mounted) return;
-    if (result == null) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Tarjeta leída: $result'),
-      ),
-    );
-  }
-
   Future<void> _logout(BuildContext context) async {
     await _sessionService.clearSession();
 
@@ -467,8 +476,10 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
                     ),
                     const SizedBox(height: 14),
                     DeviceActionButton(
-                      text: 'Tarjeta',
-                      onTap: isProcessing ? () {} : () => _openCardScanner(context),
+                      text: isProcessing ? 'Validando...' : 'Tarjeta',
+                      onTap: isProcessing
+                          ? () {}
+                          : () => _openCardScanner(context),
                     ),
                     const SizedBox(height: 18),
                     DeviceLogoutButton(
