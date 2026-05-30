@@ -25,7 +25,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
   final AttendanceService _attendanceService = const AttendanceService();
   final SessionService _sessionService = const SessionService();
 
-  bool isProcessingQr = false;
+  bool isProcessing = false;
   bool isLoadingDeviceData = true;
 
   int? deviceId;
@@ -77,8 +77,67 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     await _validateQrToken(token);
   }
 
+  Future<void> _openAccessCodeModal(BuildContext context) async {
+    final code = await showAccessCodeModal(context);
+
+    if (!context.mounted) return;
+    if (code == null || code.trim().isEmpty) return;
+
+    await _validateAccessCode(code.trim());
+  }
+
+  Future<void> _openCardScanner(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CardScannerScreen(),
+      ),
+    );
+
+    if (!context.mounted) return;
+    if (result == null) return;
+
+    final barcode = result.toString().trim();
+    if (barcode.isEmpty) return;
+
+    await _validateBarcode(barcode);
+  }
+
   Future<void> _validateQrToken(String token) async {
-    if (isProcessingQr) return;
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateQr(
+        token: token,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar el código QR',
+    );
+  }
+
+  Future<void> _validateAccessCode(String code) async {
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateAccessCode(
+        accessCode: code,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar el código de acceso',
+    );
+  }
+
+  Future<void> _validateBarcode(String barcode) async {
+    await _processAttendanceValidation(
+      request: () => _attendanceService.validateBarcode(
+        barcode: barcode,
+        accessPointId: accessPointId!,
+      ),
+      fallbackErrorMessage: 'No se pudo validar la tarjeta',
+    );
+  }
+
+  Future<void> _processAttendanceValidation({
+    required Future<ValidateQrResponse> Function() request,
+    required String fallbackErrorMessage,
+  }) async {
+    if (isProcessing) return;
 
     if (accessPointId == null) {
       ApiErrorHandler.handle(
@@ -91,44 +150,37 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     }
 
     setState(() {
-      isProcessingQr = true;
+      isProcessing = true;
     });
 
     try {
-      final ValidateQrResponse response = await _attendanceService.validateQr(
-        token: token,
-        accessPointId: accessPointId!,
-      );
+      final response = await request();
 
       if (!mounted) return;
-
-      final modalTitle = _buildAttendanceMessage(response);
-      final modalSubtitle = _buildAttendanceSubtitle(response);
-      final modalIcon = _buildAttendanceIcon(response);
-      final modalColor = _buildAttendanceColor(response);
 
       await _showAttendanceResultModal(
-        title: modalTitle,
-        subtitle: modalSubtitle,
-        icon: modalIcon,
-        iconColor: modalColor,
+        title: _buildAttendanceMessage(response),
+        subtitle: _buildAttendanceSubtitle(response),
+        icon: _buildAttendanceIcon(response),
+        iconColor: _buildAttendanceColor(response),
       );
     } on AuthException catch (e) {
-      if (!mounted) return;
-      ApiErrorHandler.handle(context, e);
+      if (mounted) {
+        ApiErrorHandler.handle(context, e);
+      }
     } catch (_) {
-      if (!mounted) return;
-
-      ApiErrorHandler.handle(
-        context,
-        const ValidationException('No se pudo validar el código QR'),
-      );
+      if (mounted) {
+        ApiErrorHandler.handle(
+          context,
+          ValidationException(fallbackErrorMessage),
+        );
+      }
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isProcessingQr = false;
-      });
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
+      }
     }
   }
 
@@ -150,11 +202,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     }
 
     final backendMessage = response.message.trim();
-    if (backendMessage.isNotEmpty) {
-      return backendMessage;
-    }
-
-    return 'Marcación registrada';
+    return backendMessage.isNotEmpty ? backendMessage : 'Marcación registrada';
   }
 
   String _buildAttendanceSubtitle(ValidateQrResponse response) {
@@ -166,6 +214,10 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
       if (response.user!.username.isNotEmpty) {
         return response.user!.username;
       }
+    }
+
+    if (response.workDate != null && response.workDate!.isNotEmpty) {
+      return 'Fecha laboral: ${response.workDate}';
     }
 
     return 'Registro completado';
@@ -196,16 +248,8 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
       return const Color(0xFF2563EB);
     }
 
-    if (response.breakInAt != null && response.breakInAt!.isNotEmpty) {
-      return const Color(0xFF16A34A);
-    }
-
     if (response.breakOutAt != null && response.breakOutAt!.isNotEmpty) {
       return const Color(0xFFF59E0B);
-    }
-
-    if (response.workInAt != null && response.workInAt!.isNotEmpty) {
-      return const Color(0xFF16A34A);
     }
 
     return const Color(0xFF16A34A);
@@ -241,7 +285,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
                     width: 74,
                     height: 74,
                     decoration: BoxDecoration(
-                      color: iconColor.withOpacity(0.12),
+                      color: iconColor.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -288,24 +332,6 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     }
   }
 
-  Future<void> _openCardScanner(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const CardScannerScreen(),
-      ),
-    );
-
-    if (!context.mounted) return;
-    if (result == null) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Tarjeta leída: $result'),
-      ),
-    );
-  }
-
   Future<void> _logout(BuildContext context) async {
     await _sessionService.clearSession();
 
@@ -328,7 +354,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     return Text(
       'Dirección: $direction',
       style: TextStyle(
-        color: Colors.white.withOpacity(0.82),
+        color: Colors.white.withValues(alpha: 0.82),
         fontSize: 13,
         fontWeight: FontWeight.w500,
       ),
@@ -343,7 +369,7 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
     return Text(
       'Dispositivo ID: $deviceId',
       style: TextStyle(
-        color: Colors.white.withOpacity(0.75),
+        color: Colors.white.withValues(alpha: 0.75),
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
@@ -420,20 +446,22 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
                     _buildDeviceIdText(),
                     const SizedBox(height: 28),
                     DeviceActionButton(
-                      text: isProcessingQr ? 'Validando QR...' : 'Leer QR',
-                      onTap: isProcessingQr
+                      text: isProcessing ? 'Validando...' : 'Leer QR',
+                      onTap: isProcessing ? () {} : () => _openQrScanner(context),
+                    ),
+                    const SizedBox(height: 14),
+                    DeviceActionButton(
+                      text: isProcessing ? 'Validando...' : 'Código de acceso',
+                      onTap: isProcessing
                           ? () {}
-                          : () => _openQrScanner(context),
+                          : () => _openAccessCodeModal(context),
                     ),
                     const SizedBox(height: 14),
                     DeviceActionButton(
-                      text: 'Código de acceso',
-                      onTap: () => showAccessCodeModal(context),
-                    ),
-                    const SizedBox(height: 14),
-                    DeviceActionButton(
-                      text: 'Tarjeta',
-                      onTap: () => _openCardScanner(context),
+                      text: isProcessing ? 'Validando...' : 'Tarjeta',
+                      onTap: isProcessing
+                          ? () {}
+                          : () => _openCardScanner(context),
                     ),
                     const SizedBox(height: 18),
                     DeviceLogoutButton(

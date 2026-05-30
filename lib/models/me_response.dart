@@ -34,7 +34,7 @@ class MeBranch {
   });
 
   factory MeBranch.fromJson(Map<String, dynamic> json) {
-    final accessPointsJson = (json['access_points'] as List<dynamic>? ?? []);
+    final accessPointsJson = json['access_points'] as List<dynamic>? ?? [];
 
     return MeBranch(
       id: json['id'] ?? 0,
@@ -70,7 +70,7 @@ class MeCurrentShift {
   });
 
   factory MeCurrentShift.fromJson(Map<String, dynamic> json) {
-    final workDaysJson = (json['work_days'] as List<dynamic>? ?? []);
+    final workDaysJson = json['work_days'] as List<dynamic>? ?? [];
 
     return MeCurrentShift(
       shiftId: json['shift_id'] ?? 0,
@@ -156,9 +156,9 @@ class MeResponse {
   String get fullName => username;
 
   factory MeResponse.fromJson(Map<String, dynamic> json) {
-    final branchesJson = (json['branches'] as List<dynamic>? ?? []);
+    final branchesJson = json['branches'] as List<dynamic>? ?? [];
     final attendanceHistoryJson =
-        (json['attendance_history'] as List<dynamic>? ?? []);
+        json['attendance_history'] as List<dynamic>? ?? [];
 
     return MeResponse(
       id: json['id'] ?? 0,

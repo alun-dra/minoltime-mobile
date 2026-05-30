@@ -196,7 +196,7 @@ class _UserQrScreenState extends State<UserQrScreen> {
           'Muestra este código para registrar tu marcación',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.85),
+            color: Colors.white.withValues(alpha: 0.85),
             fontSize: 15,
             fontWeight: FontWeight.w500,
           ),
@@ -219,7 +219,7 @@ class _UserQrScreenState extends State<UserQrScreen> {
         Text(
           'Expira en ${qrSession?.remainingSeconds ?? 0} segundos',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.80),
+            color: Colors.white.withValues(alpha: 0.80),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),

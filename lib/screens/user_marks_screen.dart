@@ -243,10 +243,10 @@ class _UserMarksScreenState extends State<UserMarksScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.14),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.14),
+          color: Colors.white.withValues(alpha: 0.14),
         ),
       ),
       child: Column(
@@ -271,7 +271,7 @@ class _UserMarksScreenState extends State<UserMarksScreen> {
             'Tus registros aparecerán aquí cuando comiences a marcar asistencia.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.78),
+              color: Colors.white.withValues(alpha: 0.78),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),

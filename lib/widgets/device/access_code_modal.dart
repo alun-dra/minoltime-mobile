@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-Future<void> showAccessCodeModal(BuildContext context) async {
+Future<String?> showAccessCodeModal(BuildContext context) async {
   final TextEditingController codeController = TextEditingController();
 
-  await showDialog(
+  final result = await showDialog<String>(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
@@ -40,7 +40,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                 'Ingresa el código para registrar la marcación',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withValues(alpha: 0.85),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -48,18 +48,19 @@ Future<void> showAccessCodeModal(BuildContext context) async {
               const SizedBox(height: 22),
               TextField(
                 controller: codeController,
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Ej: 123456',
+                  hintText: 'Ej: 9468-5091',
                   hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.65),
+                    color: Colors.white.withValues(alpha: 0.65),
                   ),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.12),
+                  fillColor: Colors.white.withValues(alpha: 0.12),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 18,
                     vertical: 18,
@@ -67,7 +68,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(18),
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.18),
+                      color: Colors.white.withValues(alpha: 0.18),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -78,6 +79,20 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                     ),
                   ),
                 ),
+                onSubmitted: (_) {
+                  final code = codeController.text.trim();
+
+                  if (code.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Debes ingresar un código'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pop(dialogContext, code);
+                },
               ),
               const SizedBox(height: 22),
               Row(
@@ -90,7 +105,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                           Navigator.pop(dialogContext);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.18),
+                          backgroundColor: Colors.white.withValues(alpha: 0.18),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -123,13 +138,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
                             return;
                           }
 
-                          Navigator.pop(dialogContext);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Código ingresado: $code'),
-                            ),
-                          );
+                          Navigator.pop(dialogContext, code);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4D00C9),
@@ -156,4 +165,7 @@ Future<void> showAccessCodeModal(BuildContext context) async {
       );
     },
   );
+
+  codeController.dispose();
+  return result;
 }

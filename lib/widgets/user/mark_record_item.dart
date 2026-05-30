@@ -22,10 +22,10 @@ class MarkRecordItem extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.14),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.14),
+          color: Colors.white.withValues(alpha: 0.14),
         ),
       ),
       child: Row(
@@ -34,7 +34,7 @@ class MarkRecordItem extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.16),
+              color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
@@ -59,7 +59,7 @@ class MarkRecordItem extends StatelessWidget {
                 Text(
                   '$date · $status',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.78),
+                    color: Colors.white.withValues(alpha: 0.78),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),

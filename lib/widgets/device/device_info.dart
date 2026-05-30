@@ -17,7 +17,7 @@ class DeviceInfo extends StatelessWidget {
         Text(
           'Usuario: $username',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -26,7 +26,7 @@ class DeviceInfo extends StatelessWidget {
         Text(
           'Dirección IP: $ipAddress',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.82),
+            color: Colors.white.withValues(alpha: 0.82),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),

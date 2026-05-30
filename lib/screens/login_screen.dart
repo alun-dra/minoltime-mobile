@@ -64,43 +64,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      if (selectedLoginType == LoginType.device) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DevicePanelScreen(),
-          ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const UserPanelScreen(),
-          ),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => selectedLoginType == LoginType.device
+              ? const DevicePanelScreen()
+              : const UserPanelScreen(),
+        ),
+      );
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
         );
       }
-    } on AuthException catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-        ),
-      );
     } catch (_) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ocurrió un error inesperado'),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ocurrió un error inesperado')),
+        );
+      }
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -145,12 +134,13 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 420),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.10),
+                  color: Colors.white.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                   ),
                 ),
                 child: Column(
@@ -174,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       _loginSubtitle,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.82),
+                        color: Colors.white.withValues(alpha: 0.82),
                         fontSize: 15,
                       ),
                     ),
@@ -182,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.10),
+                        color: Colors.white.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -202,7 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: _LoginTypeButton(
                               text: 'Dispositivo',
-                              isSelected: selectedLoginType == LoginType.device,
+                              isSelected:
+                                  selectedLoginType == LoginType.device,
                               onTap: () {
                                 setState(() {
                                   selectedLoginType = LoginType.device;
@@ -252,8 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: const Color(0xFF4C00B8),
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          disabledBackgroundColor:
-                              const Color(0xFF4C00B8).withOpacity(0.7),
+                          disabledBackgroundColor: const Color(0xFF4C00B8)
+                              .withValues(alpha: 0.70),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
@@ -281,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Gestión de asistencia inteligente',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.78),
+                        color: Colors.white.withValues(alpha: 0.78),
                         fontSize: 13,
                       ),
                     ),
@@ -316,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
-          color: Colors.white.withOpacity(0.72),
+          color: Colors.white.withValues(alpha: 0.72),
         ),
         prefixIcon: Icon(
           icon,
@@ -324,7 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.white.withOpacity(0.12),
+        fillColor: Colors.white.withValues(alpha: 0.12),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 18,
@@ -332,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.12),
+            color: Colors.white.withValues(alpha: 0.12),
           ),
         ),
         focusedBorder: OutlineInputBorder(

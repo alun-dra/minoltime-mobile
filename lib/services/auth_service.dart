@@ -18,7 +18,7 @@ class AuthService {
 
   static const String _prodBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://back-handsoft-production.up.railway.app',
+    defaultValue: 'https://api.minoltime.cl',
   );
 
   String get baseUrl {
@@ -52,7 +52,7 @@ class AuthService {
       final response = await http
           .post(
             uri,
-            headers: {
+            headers: const {
               'Content-Type': 'application/json',
             },
             body: jsonEncode({
@@ -87,7 +87,7 @@ class AuthService {
       final response = await http
           .post(
             uri,
-            headers: {
+            headers: const {
               'Content-Type': 'application/json',
             },
             body: jsonEncode({
@@ -121,7 +121,7 @@ class AuthService {
       final response = await http
           .post(
             uri,
-            headers: {
+            headers: const {
               'Content-Type': 'application/json',
             },
             body: jsonEncode({
@@ -139,6 +139,7 @@ class AuthService {
       }
 
       final backendMessage = _extractMessage(response);
+
       throw ValidationException(
         backendMessage.isNotEmpty
             ? backendMessage
@@ -163,7 +164,12 @@ class AuthService {
     final statusCode = response.statusCode;
 
     if (statusCode >= 200 && statusCode < 300) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+
+      if (data is! Map<String, dynamic>) {
+        throw const GenericServerException();
+      }
+
       return LoginResponse.fromJson(data);
     }
 

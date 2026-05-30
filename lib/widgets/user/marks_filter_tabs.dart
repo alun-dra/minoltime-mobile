@@ -19,7 +19,8 @@ class MarksFilterTabs extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (context, index) =>
+            const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final filter = filters[index];
           final isSelected = filter == selectedFilter;
@@ -28,16 +29,19 @@ class MarksFilterTabs extends StatelessWidget {
             onTap: () => onChanged(filter),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 10,
+              ),
               decoration: BoxDecoration(
                 color: isSelected
                     ? Colors.white
-                    : Colors.white.withOpacity(0.14),
+                    : Colors.white.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
                       ? Colors.white
-                      : Colors.white.withOpacity(0.18),
+                      : Colors.white.withValues(alpha: 0.18),
                 ),
               ),
               child: Text(
