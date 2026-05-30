@@ -21,7 +21,7 @@ class _CardScannerScreenState extends State<CardScannerScreen> {
       BarcodeFormat.ean8,
       BarcodeFormat.upcA,
       BarcodeFormat.upcE,
-      BarcodeFormat.itf,
+      BarcodeFormat.itf14,
       BarcodeFormat.codabar,
     ],
   );

@@ -21,9 +21,6 @@ class SessionService {
   static const _keyDeviceName = 'device_name';
 
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock,
     ),
