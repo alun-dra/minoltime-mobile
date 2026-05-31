@@ -1,8 +1,32 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+
+if (!keystorePropertiesFile.exists()) {
+    throw GradleException("No se encontró android/key.properties")
+}
+
+keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+
+val storePasswordValue = keystoreProperties.getProperty("storePassword")
+    ?: throw GradleException("Falta storePassword en key.properties")
+
+val keyPasswordValue = keystoreProperties.getProperty("keyPassword")
+    ?: throw GradleException("Falta keyPassword en key.properties")
+
+val keyAliasValue = keystoreProperties.getProperty("keyAlias")
+    ?: throw GradleException("Falta keyAlias en key.properties")
+
+val storeFileValue = keystoreProperties.getProperty("storeFile")
+    ?: throw GradleException("Falta storeFile en key.properties")
 
 android {
     namespace = "cl.minoltime.app"
@@ -26,9 +50,20 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keyAliasValue
+            keyPassword = keyPasswordValue
+            storeFile = rootProject.file(storeFileValue)
+            storePassword = storePasswordValue
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
