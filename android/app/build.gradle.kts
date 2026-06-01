@@ -16,17 +16,17 @@ if (!keystorePropertiesFile.exists()) {
 
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
-val storePasswordValue = keystoreProperties.getProperty("storePassword")
-    ?: throw GradleException("Falta storePassword en key.properties")
+val keyAliasValue = keystoreProperties.getProperty("keyAlias")
+    ?: throw GradleException("Falta keyAlias en key.properties")
 
 val keyPasswordValue = keystoreProperties.getProperty("keyPassword")
     ?: throw GradleException("Falta keyPassword en key.properties")
 
-val keyAliasValue = keystoreProperties.getProperty("keyAlias")
-    ?: throw GradleException("Falta keyAlias en key.properties")
-
 val storeFileValue = keystoreProperties.getProperty("storeFile")
     ?: throw GradleException("Falta storeFile en key.properties")
+
+val storePasswordValue = keystoreProperties.getProperty("storePassword")
+    ?: throw GradleException("Falta storePassword en key.properties")
 
 android {
     namespace = "cl.minoltime.app"

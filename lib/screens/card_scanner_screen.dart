@@ -14,6 +14,7 @@ class CardScannerScreen extends StatefulWidget {
 
 class _CardScannerScreenState extends State<CardScannerScreen> {
   final MobileScannerController controller = MobileScannerController(
+    facing: CameraFacing.front,
     formats: [
       BarcodeFormat.code128,
       BarcodeFormat.code39,
