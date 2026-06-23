@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -27,11 +29,38 @@ class _UserQrScreenState extends State<UserQrScreen> {
 
   bool isLoading = true;
   String? errorMessage;
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
 
   @override
   void initState() {
     super.initState();
     _loadQr();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    _remainingSeconds = qrSession?.remainingSeconds ?? 0;
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _remainingSeconds--;
+      });
+      if (_remainingSeconds <= 0) {
+        timer.cancel();
+        _refreshQr();
+      }
+    });
   }
 
   Future<void> _loadQr({bool forceRefresh = false}) async {
@@ -61,6 +90,7 @@ class _UserQrScreenState extends State<UserQrScreen> {
         isLoading = false;
         errorMessage = null;
       });
+      _startCountdown();
     } on AuthException catch (e) {
       if (!mounted) return;
 
@@ -217,11 +247,15 @@ class _UserQrScreenState extends State<UserQrScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Expira en ${qrSession?.remainingSeconds ?? 0} segundos',
+          _remainingSeconds > 60
+              ? 'Expira en ${_remainingSeconds ~/ 60}m ${_remainingSeconds % 60}s'
+              : 'Expira en $_remainingSeconds segundos',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.80),
+            color: _remainingSeconds < 60
+                ? Colors.amber.shade200
+                : Colors.white.withValues(alpha: 0.80),
             fontSize: 13,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
