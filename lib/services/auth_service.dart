@@ -223,7 +223,9 @@ class AuthService {
 
       return '';
     } catch (_) {
-      return '';
+      final text = response.body.trim();
+      if (text.isEmpty) return '';
+      return text.length > 300 ? text.substring(0, 300) : text;
     }
   }
 }

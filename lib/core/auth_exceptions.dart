@@ -40,3 +40,17 @@ class GenericServerException extends AuthException {
   const GenericServerException()
       : super('Ocurrió un error interno en el servidor');
 }
+
+class FraudSuspicionException extends AuthException {
+  const FraudSuspicionException()
+      : super(
+          'Se detectó una marcación reciente en otra sucursal. Intenta nuevamente en unos minutos.',
+        );
+}
+
+class RateLimitException extends AuthException {
+  final int? retryAfterSeconds;
+
+  const RateLimitException([this.retryAfterSeconds])
+      : super('Demasiados intentos. Intenta nuevamente en unos segundos.');
+}

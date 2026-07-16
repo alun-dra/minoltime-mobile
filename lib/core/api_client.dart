@@ -64,7 +64,7 @@ class ApiClient {
 
   Future<http.Response> post(
     String path, {
-    Map<String, dynamic>? body,
+    Object? body,
     bool requiresAuth = true,
     bool retryOnAuthFailure = true,
   }) async {
@@ -77,7 +77,7 @@ class ApiClient {
           .post(
             uri,
             headers: headers,
-            body: jsonEncode(body ?? {}),
+            body: jsonEncode(body ?? <String, dynamic>{}),
           )
           .timeout(_timeout);
 
@@ -106,7 +106,7 @@ class ApiClient {
 
   Future<http.Response> delete(
     String path, {
-    Map<String, dynamic>? body,
+    Object? body,
     bool requiresAuth = true,
     bool retryOnAuthFailure = true,
   }) async {
@@ -150,16 +150,23 @@ class ApiClient {
     required http.Response response,
     required String method,
     required String path,
-    Map<String, dynamic>? body,
+    Object? body,
     required bool requiresAuth,
     required bool retryOnAuthFailure,
   }) async {
     if (response.statusCode != 401) {
-      _handleErrors(response);
+      _handleErrors(response, requiresAuth: requiresAuth);
       return response;
     }
 
-    if (!requiresAuth || !retryOnAuthFailure) {
+    if (!requiresAuth) {
+      // Endpoint público (ej. marcación de asistencia): un 401 aquí significa
+      // credencial/token de marcación inválido, no una sesión de usuario expirada.
+      _handleErrors(response, requiresAuth: false);
+      return response;
+    }
+
+    if (!retryOnAuthFailure) {
       await SessionExpirationHandler.handle();
       throw const SessionExpiredException();
     }
@@ -182,7 +189,7 @@ class ApiClient {
   Future<http.Response> _retryRequest({
     required String method,
     required String path,
-    Map<String, dynamic>? body,
+    Object? body,
     required bool requiresAuth,
   }) async {
     switch (method) {
@@ -247,7 +254,7 @@ class ApiClient {
     }
   }
 
-  void _handleErrors(http.Response response) {
+  void _handleErrors(http.Response response, {bool requiresAuth = true}) {
     final statusCode = response.statusCode;
 
     if (statusCode >= 200 && statusCode < 300) {
@@ -262,6 +269,13 @@ class ApiClient {
           backendMessage.isNotEmpty ? backendMessage : 'Solicitud inválida',
         );
       case 401:
+        if (!requiresAuth) {
+          throw ValidationException(
+            backendMessage.isNotEmpty
+                ? backendMessage
+                : 'Datos de marcación inválidos',
+          );
+        }
         throw const SessionExpiredException();
       case 403:
         throw ValidationException(
@@ -273,10 +287,14 @@ class ApiClient {
         throw ValidationException(
           backendMessage.isNotEmpty ? backendMessage : 'Recurso no encontrado',
         );
+      case 409:
+        throw const FraudSuspicionException();
       case 422:
         throw ValidationException(
           backendMessage.isNotEmpty ? backendMessage : 'Datos inválidos',
         );
+      case 429:
+        throw RateLimitException(_extractRetryAfterSeconds(response));
       case 500:
         throw const GenericServerException();
       case 502:
@@ -290,6 +308,12 @@ class ApiClient {
               : 'Error en la petición ($statusCode)',
         );
     }
+  }
+
+  int? _extractRetryAfterSeconds(http.Response response) {
+    final header = response.headers['retry-after'];
+    if (header == null) return null;
+    return int.tryParse(header.trim());
   }
 
   String _extractMessage(http.Response response) {
@@ -308,7 +332,9 @@ class ApiClient {
 
       return '';
     } catch (_) {
-      return '';
+      final text = response.body.trim();
+      if (text.isEmpty) return '';
+      return text.length > 300 ? text.substring(0, 300) : text;
     }
   }
 }

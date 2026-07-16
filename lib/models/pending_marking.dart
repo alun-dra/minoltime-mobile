@@ -11,6 +11,7 @@ class PendingMarking {
   final double? lng;
   final double? accuracy;
   bool synced;
+  String? lastError;
 
   PendingMarking({
     String? idempotencyKey,
@@ -23,8 +24,9 @@ class PendingMarking {
     this.lng,
     this.accuracy,
     this.synced = false,
+    this.lastError,
   })  : idempotencyKey = idempotencyKey ?? const Uuid().v4(),
-        timestamp = timestamp ?? DateTime.now().toIso8601String();
+        timestamp = timestamp ?? DateTime.now().toUtc().toIso8601String();
 
   Map<String, dynamic> toJson() => {
         'idempotency_key': idempotencyKey,
@@ -37,6 +39,7 @@ class PendingMarking {
         if (lng != null) 'lng': lng,
         if (accuracy != null) 'accuracy': accuracy,
         'synced': synced,
+        if (lastError != null) 'last_error': lastError,
       };
 
   factory PendingMarking.fromJson(Map<String, dynamic> json) => PendingMarking(
@@ -50,5 +53,6 @@ class PendingMarking {
         lng: (json['lng'] as num?)?.toDouble(),
         accuracy: (json['accuracy'] as num?)?.toDouble(),
         synced: json['synced'] as bool? ?? false,
+        lastError: json['last_error'] as String?,
       );
 }

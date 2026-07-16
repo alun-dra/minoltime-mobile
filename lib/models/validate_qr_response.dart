@@ -33,6 +33,11 @@ class ValidateQrResponse {
   final String? breakInAt;
   final String? workOutAt;
 
+  final int? lateMinutes;
+  final int? overtimeMinutes;
+  final int? earlyExitMinutes;
+  final int? breakDiffMinutes;
+
   const ValidateQrResponse({
     required this.status,
     required this.user,
@@ -46,6 +51,10 @@ class ValidateQrResponse {
     this.breakOutAt,
     this.breakInAt,
     this.workOutAt,
+    this.lateMinutes,
+    this.overtimeMinutes,
+    this.earlyExitMinutes,
+    this.breakDiffMinutes,
   });
 
   factory ValidateQrResponse.fromJson(Map<String, dynamic> json) {
@@ -64,6 +73,10 @@ class ValidateQrResponse {
       breakOutAt: json['break_out_at'],
       breakInAt: json['break_in_at'],
       workOutAt: json['work_out_at'],
+      lateMinutes: json['late_minutes'],
+      overtimeMinutes: json['overtime_minutes'],
+      earlyExitMinutes: json['early_exit_minutes'],
+      breakDiffMinutes: json['break_diff_minutes'],
     );
   }
 }

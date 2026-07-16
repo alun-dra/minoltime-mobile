@@ -67,6 +67,16 @@ class _UserQrScreenState extends State<UserQrScreen> {
     try {
       final me = await _userService.getMe();
 
+      if (!me.hasPermission('users.qr_session.create')) {
+        if (!mounted) return;
+        setState(() {
+          isLoading = false;
+          errorMessage =
+              'Tu perfil no tiene permiso para generar código QR. Contacta a tu administrador.';
+        });
+        return;
+      }
+
       LocalQrSession? localSession;
 
       if (!forceRefresh) {

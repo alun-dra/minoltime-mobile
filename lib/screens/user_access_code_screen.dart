@@ -29,6 +29,17 @@ class _UserAccessCodeScreenState extends State<UserAccessCodeScreen> {
   Future<void> _loadAccessCode() async {
     try {
       final meResponse = await _userService.getMe();
+
+      if (!meResponse.hasPermission('users.access_code.view')) {
+        if (!mounted) return;
+        setState(() {
+          isLoading = false;
+          errorMessage =
+              'Tu perfil no tiene permiso para ver el código de acceso. Contacta a tu administrador.';
+        });
+        return;
+      }
+
       final accessCodeResponse =
           await _userService.getAccessCode(meResponse.id);
 

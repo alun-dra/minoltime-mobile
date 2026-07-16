@@ -141,6 +141,7 @@ class MeResponse {
   final MeCurrentShift? currentShift;
   final MeTodaySummary? todaySummary;
   final List<MeAttendanceHistoryItem> attendanceHistory;
+  final List<String> permissions;
 
   const MeResponse({
     required this.id,
@@ -151,14 +152,24 @@ class MeResponse {
     required this.currentShift,
     required this.todaySummary,
     required this.attendanceHistory,
+    this.permissions = const [],
   });
 
   String get fullName => username;
+
+  /// `true` cuando el backend no envía `permissions` (compatibilidad con
+  /// versiones antiguas del backend), para no bloquear funciones por un
+  /// campo ausente en vez de explícitamente denegado.
+  bool get permissionsUnknown => permissions.isEmpty;
+
+  bool hasPermission(String permission) =>
+      permissionsUnknown || permissions.contains(permission);
 
   factory MeResponse.fromJson(Map<String, dynamic> json) {
     final branchesJson = json['branches'] as List<dynamic>? ?? [];
     final attendanceHistoryJson =
         json['attendance_history'] as List<dynamic>? ?? [];
+    final permissionsJson = json['permissions'] as List<dynamic>? ?? [];
 
     return MeResponse(
       id: json['id'] ?? 0,
@@ -175,6 +186,7 @@ class MeResponse {
       attendanceHistory: attendanceHistoryJson
           .map((item) => MeAttendanceHistoryItem.fromJson(item))
           .toList(),
+      permissions: permissionsJson.map((item) => item.toString()).toList(),
     );
   }
 }

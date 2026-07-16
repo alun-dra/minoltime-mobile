@@ -206,21 +206,49 @@ class _DevicePanelScreenState extends State<DevicePanelScreen> {
   }
 
   String _buildAttendanceSubtitle(ValidateQrResponse response) {
+    String base = 'Registro completado';
+
     if (response.user != null) {
       if (response.user!.firstName.isNotEmpty) {
-        return response.user!.firstName;
+        base = response.user!.firstName;
+      } else if (response.user!.username.isNotEmpty) {
+        base = response.user!.username;
       }
-
-      if (response.user!.username.isNotEmpty) {
-        return response.user!.username;
-      }
+    } else if (response.workDate != null && response.workDate!.isNotEmpty) {
+      base = 'Fecha laboral: ${response.workDate}';
     }
 
-    if (response.workDate != null && response.workDate!.isNotEmpty) {
-      return 'Fecha laboral: ${response.workDate}';
+    final details = _buildAttendanceDetails(response);
+    if (details.isEmpty) return base;
+
+    return '$base\n$details';
+  }
+
+  String _buildAttendanceDetails(ValidateQrResponse response) {
+    final lines = <String>[];
+
+    if (response.lateMinutes != null && response.lateMinutes! > 0) {
+      lines.add('Atraso: ${response.lateMinutes} min');
     }
 
-    return 'Registro completado';
+    if (response.overtimeMinutes != null && response.overtimeMinutes! > 0) {
+      lines.add('Horas extra: ${response.overtimeMinutes} min');
+    }
+
+    if (response.earlyExitMinutes != null && response.earlyExitMinutes! > 0) {
+      lines.add('Salida anticipada: ${response.earlyExitMinutes} min');
+    }
+
+    if (response.breakDiffMinutes != null && response.breakDiffMinutes != 0) {
+      final diff = response.breakDiffMinutes!;
+      lines.add(
+        diff > 0
+            ? 'Colación excedida: $diff min'
+            : 'Colación no completa: ${-diff} min',
+      );
+    }
+
+    return lines.join('\n');
   }
 
   IconData _buildAttendanceIcon(ValidateQrResponse response) {

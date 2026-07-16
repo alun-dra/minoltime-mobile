@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/local_qr_session.dart';
 import '../models/qr_session_response.dart';
@@ -8,11 +8,15 @@ import '../models/qr_session_response.dart';
 class QrSessionService {
   static const String _keyQrSession = 'active_qr_session';
 
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+  );
+
   const QrSessionService();
 
   Future<void> saveQrSession(QrSessionResponse response) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final expiresAt = DateTime.now()
         .add(Duration(seconds: response.expiresIn))
         .toIso8601String();
@@ -23,15 +27,14 @@ class QrSessionService {
       expiresAt: expiresAt,
     );
 
-    await prefs.setString(
-      _keyQrSession,
-      jsonEncode(localSession.toJson()),
+    await _secureStorage.write(
+      key: _keyQrSession,
+      value: jsonEncode(localSession.toJson()),
     );
   }
 
   Future<LocalQrSession?> getQrSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyQrSession);
+    final raw = await _secureStorage.read(key: _keyQrSession);
 
     if (raw == null || raw.isEmpty) {
       return null;
@@ -59,7 +62,6 @@ class QrSessionService {
   }
 
   Future<void> clearQrSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyQrSession);
+    await _secureStorage.delete(key: _keyQrSession);
   }
 }
